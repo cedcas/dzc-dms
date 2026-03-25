@@ -44,7 +44,7 @@ export const activitySchema = z.object({
   notes: z.string().min(1, "Notes are required"),
   occurredAt: z.preprocess(
     parseDate,
-    z.date({ required_error: "Date is required" })
+    z.date({ error: "Date is required" })
   ),
   nextActionDate: z.preprocess(parseOptionalDate, z.date().optional()),
   createFollowUpTask: z.preprocess(parseBooleanFlag, z.boolean()).optional(),
