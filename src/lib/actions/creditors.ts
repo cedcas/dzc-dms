@@ -4,35 +4,35 @@ import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { clientSchema } from "@/lib/validators/client";
+import { creditorSchema } from "@/lib/validators/creditor";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { writeAuditLog } from "@/lib/audit";
 
-export type ClientActionResult =
+export type CreditorActionResult =
   | { error: string; fieldErrors?: Record<string, string[]> }
   | undefined;
 
 function parseFormData(formData: FormData) {
   return {
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    email: formData.get("email"),
+    name: formData.get("name"),
+    type: formData.get("type"),
     phone: formData.get("phone"),
+    email: formData.get("email"),
     address: formData.get("address"),
-    status: formData.get("status"),
-    programStartDate: formData.get("programStartDate"),
+    website: formData.get("website"),
+    preferredChannel: formData.get("preferredChannel"),
     notes: formData.get("notes"),
-    handlerId: formData.get("handlerId"),
+    isActive: formData.get("isActive"),
   };
 }
 
-export async function createClientAction(
+export async function createCreditorAction(
   formData: FormData
-): Promise<ClientActionResult> {
+): Promise<CreditorActionResult> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  const parsed = clientSchema.safeParse(parseFormData(formData));
+  const parsed = creditorSchema.safeParse(parseFormData(formData));
   if (!parsed.success) {
     return {
       error: "Please fix the errors below.",
@@ -41,33 +41,33 @@ export async function createClientAction(
   }
 
   try {
-    const client = await prisma.client.create({ data: parsed.data });
+    const creditor = await prisma.creditor.create({ data: parsed.data });
 
     await writeAuditLog({
       userId: session.user.id,
       action: "CREATE",
-      entityType: "Client",
-      entityId: client.id,
+      entityType: "Creditor",
+      entityId: creditor.id,
       after: parsed.data,
     });
 
-    revalidatePath("/clients");
-    redirect(`/clients/${client.id}`);
+    revalidatePath("/creditors");
+    redirect(`/creditors/${creditor.id}`);
   } catch (err) {
     if (isRedirectError(err)) throw err;
-    console.error("[createClientAction]", err);
-    return { error: "Failed to create client. Please try again." };
+    console.error("[createCreditorAction]", err);
+    return { error: "Failed to create creditor. Please try again." };
   }
 }
 
-export async function updateClientAction(
+export async function updateCreditorAction(
   id: string,
   formData: FormData
-): Promise<ClientActionResult> {
+): Promise<CreditorActionResult> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
-  const parsed = clientSchema.safeParse(parseFormData(formData));
+  const parsed = creditorSchema.safeParse(parseFormData(formData));
   if (!parsed.success) {
     return {
       error: "Please fix the errors below.",
@@ -76,33 +76,33 @@ export async function updateClientAction(
   }
 
   try {
-    const before = await prisma.client.findUnique({ where: { id } });
-    if (!before) return { error: "Client not found." };
+    const before = await prisma.creditor.findUnique({ where: { id } });
+    if (!before) return { error: "Creditor not found." };
 
-    await prisma.client.update({ where: { id }, data: parsed.data });
+    await prisma.creditor.update({ where: { id }, data: parsed.data });
 
     await writeAuditLog({
       userId: session.user.id,
       action: "UPDATE",
-      entityType: "Client",
+      entityType: "Creditor",
       entityId: id,
       before: {
-        firstName: before.firstName,
-        lastName: before.lastName,
-        email: before.email,
+        name: before.name,
+        type: before.type,
         phone: before.phone,
-        status: before.status,
-        handlerId: before.handlerId,
+        email: before.email,
+        preferredChannel: before.preferredChannel,
+        isActive: before.isActive,
       },
       after: parsed.data,
     });
 
-    revalidatePath(`/clients/${id}`);
-    revalidatePath("/clients");
-    redirect(`/clients/${id}`);
+    revalidatePath(`/creditors/${id}`);
+    revalidatePath("/creditors");
+    redirect(`/creditors/${id}`);
   } catch (err) {
     if (isRedirectError(err)) throw err;
-    console.error("[updateClientAction]", err);
-    return { error: "Failed to update client. Please try again." };
+    console.error("[updateCreditorAction]", err);
+    return { error: "Failed to update creditor. Please try again." };
   }
 }

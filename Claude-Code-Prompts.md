@@ -28,6 +28,7 @@ After changes:
 - list any commands I need to run locally
 - list any environment variables required
 
+Note: Ran this prompt.  I helped troubleshoot the DB Remote MySQL connection including the SHADOW DB.  Kodee (AI) from Hostinger was a big help.
 ---
 
 ## Prompt 2 — Prisma schema and seed data
@@ -59,6 +60,7 @@ After changes:
 - summarize the entity relationships in plain English
 - point out any schema decisions I should review
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 3 — Authentication and route protection
@@ -82,6 +84,7 @@ After changes:
 - tell me exactly how to log in locally
 - explain where role checks are enforced
 
+Note: Ran this prompt.  Troubleshooted the local server. 
 ---
 
 ## Prompt 4 — App shell and dashboard
@@ -102,6 +105,7 @@ Keep the design clean, fast, and readable. Do not overdesign.
 After changes:
 - summarize what dashboard metrics are live vs placeholder
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 5 — Client management module
@@ -123,6 +127,7 @@ After changes:
 - tell me what fields are required
 - identify any follow-up improvements you recommend
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 6 — Debt account management module
@@ -146,6 +151,7 @@ Also:
 After changes:
 - summarize the workflow for adding and managing an account
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 7 — Negotiation activity log
@@ -164,6 +170,7 @@ Requirements:
 After changes:
 - explain how stale accounts could later be reported using this data
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 8 — Offer tracking
@@ -181,6 +188,7 @@ Requirements:
 After changes:
 - explain how final settlement amount should be derived in the MVP
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 9 — Task and follow-up system
@@ -199,6 +207,7 @@ Requirements:
 After changes:
 - describe the minimum operational discipline this creates for the team
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 10 — Creditor directory
@@ -216,6 +225,7 @@ Requirements:
 After changes:
 - explain how this module helps standardize negotiations
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 11 — Document metadata and file uploads
@@ -237,6 +247,7 @@ After changes:
 - tell me where files are stored
 - tell me what production caveats I should know on Hostinger
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 12 — Reports and stale account views
@@ -259,6 +270,7 @@ Add one reports page and ensure dashboard uses real data.
 After changes:
 - explain any heavy queries and optimization opportunities
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 13 — Audit logging hardening
@@ -275,6 +287,7 @@ Requirements:
 After changes:
 - show me which operations are audited now
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 14 — Hostinger deployment readiness
@@ -295,6 +308,7 @@ After changes:
 - give me a step-by-step deployment checklist
 - call out any Hostinger-specific risks or caveats
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 15 — Codebase review and cleanup

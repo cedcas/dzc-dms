@@ -21,6 +21,23 @@ enum UserRole {
   READ_ONLY
 }
 
+enum CreditorType {
+  ORIGINAL_CREDITOR
+  COLLECTION_AGENCY
+  LAW_FIRM
+  DEBT_BUYER
+  OTHER
+}
+
+enum ContactChannel {
+  PHONE
+  EMAIL
+  FAX
+  MAIL
+  PORTAL
+  OTHER
+}
+
 enum ClientStatus {
   ONBOARDING
   ACTIVE
@@ -84,11 +101,11 @@ enum TaskPriority {
 }
 
 enum DocumentCategory {
-  ENROLLMENT
+  INTAKE
+  STATEMENT
   HARDSHIP
-  OFFER_LETTER
   SETTLEMENT_AGREEMENT
-  IDENTITY
+  PROOF_OF_PAYMENT
   OTHER
 }
 
@@ -152,13 +169,16 @@ model Client {
 }
 
 model Creditor {
-  id       String  @id @default(cuid())
-  name     String
-  phone    String?
-  address  String? @db.Text
-  website  String?
-  notes    String? @db.Text
-  isActive Boolean @default(true)
+  id               String          @id @default(cuid())
+  name             String
+  type             CreditorType?
+  phone            String?
+  email            String?
+  address          String?         @db.Text
+  website          String?
+  preferredChannel ContactChannel?
+  notes            String?         @db.Text
+  isActive         Boolean         @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

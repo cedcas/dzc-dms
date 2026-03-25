@@ -8,12 +8,16 @@ import {
   OfferForm,
   AcceptOfferButton,
 } from "@/components/debt-accounts/OfferForm";
+import { InlineTaskForm } from "@/components/tasks/InlineTaskForm";
+import { CompleteTaskButton } from "@/components/tasks/CompleteTaskButton";
+import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import type {
   DebtAccountStatus,
   DelinquencyStage,
   ActivityType,
   OfferStatus,
   PaymentType,
+  TaskPriority,
 } from "@prisma/client";
 
 // ─── Label / badge maps ────────────────────────────────────────────────────
@@ -77,6 +81,13 @@ const PAYMENT_TYPE_LABEL: Record<PaymentType, string> = {
   INSTALLMENT: "Installment",
 };
 
+const TASK_PRIORITY_BADGE: Record<TaskPriority, string> = {
+  LOW: "bg-gray-100 text-gray-500",
+  MEDIUM: "bg-yellow-100 text-yellow-700",
+  HIGH: "bg-orange-100 text-orange-700",
+  URGENT: "bg-red-100 text-red-700",
+};
+
 const ACTIVITY_LABEL: Record<ActivityType, string> = {
   CALL: "Phone Call",
   VOICEMAIL: "Voicemail",
@@ -125,28 +136,37 @@ export default async function DebtAccountDetailPage({
   await requireAuth();
   const { id } = await params;
 
-  const account = await prisma.debtAccount.findUnique({
-    where: { id },
-    include: {
-      client: { select: { id: true, firstName: true, lastName: true } },
-      creditor: { select: { id: true, name: true } },
-      activities: {
-        orderBy: { occurredAt: "desc" },
-        take: 25,
-        include: { author: { select: { name: true } } },
+  const [account, users] = await Promise.all([
+    prisma.debtAccount.findUnique({
+      where: { id },
+      include: {
+        client: { select: { id: true, firstName: true, lastName: true } },
+        creditor: { select: { id: true, name: true } },
+        activities: {
+          orderBy: { occurredAt: "desc" },
+          take: 25,
+          include: { author: { select: { name: true } } },
+        },
+        offers: {
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+        tasks: {
+          orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
+          include: { assignedTo: { select: { name: true } } },
+        },
+        documents: {
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        },
       },
-      offers: {
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      },
-      tasks: {
-        where: { status: { notIn: ["DONE", "CANCELLED"] } },
-        orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
-        take: 10,
-        include: { assignedTo: { select: { name: true } } },
-      },
-    },
-  });
+    }),
+    prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   if (!account) notFound();
 
@@ -411,30 +431,71 @@ export default async function DebtAccountDetailPage({
         )}
       </div>
 
-      {/* Open tasks */}
-      {account.tasks.length > 0 && (
-        <div className="rounded-xl border bg-card">
-          <div className="px-5 py-4 border-b">
-            <h2 className="text-sm font-semibold">Open Tasks</h2>
-          </div>
-          <ul className="divide-y">
-            {account.tasks.map((task) => (
-              <li key={task.id} className="px-5 py-3 flex items-center gap-3">
-                <span className="shrink-0 text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
-                  {task.priority.charAt(0) +
-                    task.priority.slice(1).toLowerCase()}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{task.title}</p>
-                </div>
-                <div className="shrink-0 text-xs text-muted-foreground">
-                  {task.dueDate ? formatDate(task.dueDate) : "—"}
-                </div>
-              </li>
-            ))}
-          </ul>
+      {/* Tasks */}
+      <div className="rounded-xl border bg-card">
+        <div className="px-5 py-4 border-b flex items-center justify-between">
+          <h2 className="text-sm font-semibold">
+            Tasks
+            {account.tasks.length > 0 && (
+              <span className="ml-1.5 text-muted-foreground font-normal">
+                ({account.tasks.length})
+              </span>
+            )}
+          </h2>
         </div>
-      )}
+
+        <InlineTaskForm
+          debtAccountId={id}
+          clientId={account.client.id}
+          users={users}
+        />
+
+        {account.tasks.length === 0 ? (
+          <p className="px-5 py-8 text-sm text-muted-foreground">
+            No tasks yet.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {account.tasks.map((task) => {
+              const isDone = task.status === "DONE" || task.status === "CANCELLED";
+              return (
+                <li
+                  key={task.id}
+                  className={`px-5 py-3 flex items-center gap-3 ${isDone ? "opacity-50" : ""}`}
+                >
+                  {!isDone ? (
+                    <CompleteTaskButton taskId={task.id} />
+                  ) : (
+                    <span className="h-5 w-5 shrink-0 rounded-full bg-muted" />
+                  )}
+                  <span
+                    className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded ${TASK_PRIORITY_BADGE[task.priority]}`}
+                  >
+                    {task.priority.charAt(0) +
+                      task.priority.slice(1).toLowerCase()}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <Link
+                      href={`/tasks/${task.id}/edit`}
+                      className="text-sm font-medium hover:underline underline-offset-2 truncate block"
+                    >
+                      {task.title}
+                    </Link>
+                    {task.assignedTo && (
+                      <p className="text-xs text-muted-foreground">
+                        {task.assignedTo.name}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground">
+                    {task.dueDate ? formatDate(task.dueDate) : "—"}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
 
       {/* Activity log */}
       <div className="rounded-xl border bg-card">
@@ -477,6 +538,25 @@ export default async function DebtAccountDetailPage({
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Documents */}
+      <div className="rounded-xl border bg-card">
+        <div className="px-5 py-4 border-b">
+          <h2 className="text-sm font-semibold">
+            Documents
+            {account.documents.length > 0 && (
+              <span className="ml-1.5 text-muted-foreground font-normal">
+                ({account.documents.length})
+              </span>
+            )}
+          </h2>
+        </div>
+        <DocumentUploadForm
+          clientId={account.client.id}
+          debtAccountId={id}
+          documents={account.documents}
+        />
       </div>
 
       {/* Audit timeline */}

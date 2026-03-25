@@ -6,35 +6,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { debtAccountSchema } from "@/lib/validators/debtAccount";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { writeAuditLog } from "@/lib/audit";
 
 export type DebtAccountActionResult =
   | { error: string; fieldErrors?: Record<string, string[]> }
   | undefined;
-
-async function writeAuditLog({
-  userId,
-  action,
-  entityId,
-  before,
-  after,
-}: {
-  userId: string;
-  action: string;
-  entityId: string;
-  before?: object;
-  after?: object;
-}) {
-  await prisma.auditLog.create({
-    data: {
-      action,
-      entityType: "DebtAccount",
-      entityId,
-      changes:
-        before || after ? { before: before ?? null, after: after ?? null } : undefined,
-      userId,
-    },
-  });
-}
 
 function parseFormData(formData: FormData) {
   return {
@@ -75,6 +51,7 @@ export async function createDebtAccountAction(
     await writeAuditLog({
       userId: session.user.id,
       action: "CREATE",
+      entityType: "DebtAccount",
       entityId: account.id,
       after: {
         clientId: parsed.data.clientId,
@@ -117,6 +94,7 @@ export async function updateDebtAccountAction(
     await writeAuditLog({
       userId: session.user.id,
       action: "UPDATE",
+      entityType: "DebtAccount",
       entityId: id,
       before: {
         status: before.status,

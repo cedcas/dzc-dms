@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { offerSchema } from "@/lib/validators/offer";
+import { writeAuditLog } from "@/lib/audit";
 
 export type OfferActionResult =
   | { error: string; fieldErrors?: Record<string, string[]>; conflictAccepted?: true }
@@ -95,16 +96,12 @@ export async function createOfferAction(
       },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action: "CREATE",
-        entityType: "Offer",
-        entityId: offer.id,
-        changes: {
-          after: { direction, amount, status, paymentType, debtAccountId },
-        },
-        userId: session.user.id,
-      },
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "CREATE",
+      entityType: "Offer",
+      entityId: offer.id,
+      after: { direction, amount: amount.toString(), status, paymentType, debtAccountId },
     });
 
     revalidatePath(`/accounts/${debtAccountId}`);
@@ -163,17 +160,13 @@ export async function updateOfferStatusAction(
       },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action: "UPDATE",
-        entityType: "Offer",
-        entityId: offerId,
-        changes: {
-          before: { status: offer.status },
-          after: { status: newStatus },
-        },
-        userId: session.user.id,
-      },
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "STATUS_CHANGE",
+      entityType: "Offer",
+      entityId: offerId,
+      before: { status: offer.status },
+      after: { status: newStatus },
     });
 
     revalidatePath(`/accounts/${offer.debtAccountId}`);

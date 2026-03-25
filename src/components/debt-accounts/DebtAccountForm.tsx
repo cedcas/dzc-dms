@@ -72,9 +72,13 @@ export function DebtAccountForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [isPending, startTransition] = useTransition();
 
-  // Toggle: link to creditor record vs. free-text name
+  // Default to manual when no creditor records exist, or when the account already has a free-text name
   const [creditorMode, setCreditorMode] = useState<"linked" | "manual">(
-    account?.originalCreditorName && !account?.creditorId ? "manual" : "linked"
+    account?.originalCreditorName && !account?.creditorId
+      ? "manual"
+      : creditors.length === 0
+        ? "manual"
+        : "linked"
   );
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -118,7 +122,10 @@ export function DebtAccountForm({
 
       {/* Creditor section */}
       <div className="space-y-3">
-        <Label>Creditor</Label>
+        <Label>Creditor <span className="text-destructive">*</span></Label>
+        {fe.originalCreditorName && (
+          <p className="text-xs text-destructive">{fe.originalCreditorName[0]}</p>
+        )}
         <div className="flex gap-3">
           <button
             type="button"
@@ -161,7 +168,9 @@ export function DebtAccountForm({
             {creditors.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 No creditor records yet. Switch to manual entry or{" "}
-                <span className="underline">add a creditor first</span>.
+                <a href="/creditors/new" className="underline hover:text-foreground">
+                  add a creditor first
+                </a>.
               </p>
             )}
           </div>
@@ -172,11 +181,6 @@ export function DebtAccountForm({
               defaultValue={account?.originalCreditorName ?? ""}
               placeholder="e.g. Chase Bank, Capital One…"
             />
-            {fe.originalCreditorName && (
-              <p className="text-xs text-destructive">
-                {fe.originalCreditorName[0]}
-              </p>
-            )}
           </div>
         )}
       </div>

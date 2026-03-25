@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 function optionalStr(v: unknown) {
+  if (v === null) return undefined;
   return typeof v === "string" && v.trim() === "" ? undefined : v;
 }
+
 
 function parseOptionalDate(v: unknown) {
   if (typeof v === "string" && v === "") return undefined;
@@ -11,7 +13,7 @@ function parseOptionalDate(v: unknown) {
 }
 
 function parseDecimal(v: unknown) {
-  if (typeof v === "string" && v.trim() === "") return undefined;
+  if (v === null || (typeof v === "string" && v.trim() === "")) return undefined;
   const n = Number(v);
   return isNaN(n) ? undefined : n;
 }

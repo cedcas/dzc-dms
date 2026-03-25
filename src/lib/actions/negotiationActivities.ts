@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { activitySchema, CONTACT_TYPES } from "@/lib/validators/negotiationActivity";
+import { writeAuditLog } from "@/lib/audit";
 
 export type ActivityActionResult =
   | { error: string; fieldErrors?: Record<string, string[]> }
@@ -102,21 +103,12 @@ export async function createActivityAction(
     }
 
     // 4. Audit log
-    await prisma.auditLog.create({
-      data: {
-        action: "CREATE",
-        entityType: "NegotiationActivity",
-        entityId: activity.id,
-        changes: {
-          after: {
-            type,
-            occurredAt,
-            nextActionDate: nextActionDate ?? null,
-            debtAccountId,
-          },
-        },
-        userId: session.user.id,
-      },
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "CREATE",
+      entityType: "NegotiationActivity",
+      entityId: activity.id,
+      after: { type, occurredAt, nextActionDate: nextActionDate ?? null, debtAccountId },
     });
 
     revalidatePath(`/accounts/${debtAccountId}`);
