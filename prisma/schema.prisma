@@ -1,13 +1,318 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// DZC DMS — Prisma Schema
+// Full MVP schema: User, Client, Creditor, DebtAccount, NegotiationActivity,
+//                  Offer, Task, Document, AuditLog
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  NEGOTIATOR
+  INTAKE
+  READ_ONLY
+}
+
+enum ClientStatus {
+  ONBOARDING
+  ACTIVE
+  GRADUATED  // completed program successfully
+  WITHDRAWN  // left the program voluntarily
+  DEFAULTED  // missed payments / program failed
+}
+
+enum DebtAccountStatus {
+  ACTIVE         // enrolled, not yet being negotiated
+  IN_NEGOTIATION // active negotiation underway
+  SETTLED        // settlement reached and paid
+  CHARGED_OFF    // creditor wrote off the debt
+  DISPUTED       // dispute filed
+  WITHDRAWN      // removed from program
+}
+
+enum OfferStatus {
+  PENDING   // awaiting response
+  ACCEPTED
+  REJECTED
+  COUNTERED // creditor countered our offer
+  EXPIRED
+}
+
+enum OfferDirection {
+  OUTGOING // DZC sent offer to creditor
+  INCOMING // creditor sent offer to DZC
+}
+
+enum PaymentType {
+  LUMP_SUM
+  INSTALLMENT
+}
+
+enum ActivityType {
+  CALL
+  VOICEMAIL
+  EMAIL
+  LETTER
+  INTERNAL_NOTE
+  CLIENT_UPDATE
+  SETTLEMENT_DISCUSSION
+  STATUS_CHANGE
+  OFFER_SENT
+  OFFER_RECEIVED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DocumentCategory {
+  ENROLLMENT
+  HARDSHIP
+  OFFER_LETTER
+  SETTLEMENT_AGREEMENT
+  IDENTITY
+  OTHER
+}
+
+enum DelinquencyStage {
+  CURRENT
+  LATE_30
+  LATE_60
+  LATE_90
+  LATE_120
+  LATE_180_PLUS
+  CHARGED_OFF
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hash
+  role      UserRole @default(NEGOTIATOR)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTasks         Task[]                @relation("TaskAssignee")
+  createdTasks          Task[]                @relation("TaskCreator")
+  negotiationActivities NegotiationActivity[]
+  auditLogs             AuditLog[]
+  clients               Client[]              @relation("ClientHandler")
+
+  @@map("users")
+}
+
+model Client {
+  id               String       @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String?      @unique
+  phone            String?
+  address          String?      @db.Text
+  status           ClientStatus @default(ONBOARDING)
+  enrolledAt       DateTime     @default(now())
+  programStartDate DateTime?
+  notes            String?      @db.Text
+
+  // Assigned negotiator / intake staff
+  handlerId String?
+  handler   User?   @relation("ClientHandler", fields: [handlerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  debtAccounts DebtAccount[]
+  tasks        Task[]
+  documents    Document[]
+
+  @@index([status])
+  @@index([handlerId])
+  @@map("clients")
+}
+
+model Creditor {
+  id       String  @id @default(cuid())
+  name     String
+  phone    String?
+  address  String? @db.Text
+  website  String?
+  notes    String? @db.Text
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  debtAccounts DebtAccount[]
+
+  @@map("creditors")
+}
+
+model DebtAccount {
+  id                   String            @id @default(cuid())
+  accountNumber        String?           // store masked/partial only (e.g. "****1234")
+  originalBalance      Decimal           @db.Decimal(10, 2)
+  currentBalance       Decimal           @db.Decimal(10, 2)
+  settledAmount        Decimal?          @db.Decimal(10, 2)
+  status               DebtAccountStatus @default(ACTIVE)
+  delinquencyStage     DelinquencyStage?
+  openedAt             DateTime?         // when the original credit account was opened
+  chargedOffAt         DateTime?
+  settledAt            DateTime?
+  lastContactDate      DateTime?
+  nextFollowUpDate     DateTime?
+  originalCreditorName String?           // use when no Creditor record exists
+
+  clientId   String
+  client     Client    @relation(fields: [clientId], references: [id])
+  creditorId String?
+  creditor   Creditor? @relation(fields: [creditorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities NegotiationActivity[]
+  offers     Offer[]
+  tasks      Task[]
+  documents  Document[]
+
+  @@index([clientId])
+  @@index([creditorId])
+  @@index([status])
+  @@map("debt_accounts")
+}
+
+model NegotiationActivity {
+  id             String       @id @default(cuid())
+  type           ActivityType
+  notes          String       @db.Text
+  occurredAt     DateTime     @default(now())
+  nextActionDate DateTime?    // when the negotiator should follow up next
+
+  debtAccountId String
+  debtAccount   DebtAccount @relation(fields: [debtAccountId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([debtAccountId])
+  @@index([authorId])
+  @@map("negotiation_activities")
+}
+
+model Offer {
+  id               String         @id @default(cuid())
+  direction        OfferDirection
+  amount           Decimal        @db.Decimal(10, 2)
+  percentOfBalance Decimal?       @db.Decimal(5, 2)   // e.g. 45.00 = 45%
+  source           String?        // creditor rep name or DZC contact who initiated
+  paymentType      PaymentType    @default(LUMP_SUM)
+  installmentCount Int?           // number of payments (INSTALLMENT only)
+  installmentFreq  String?        // "Monthly", "Weekly", etc. (INSTALLMENT only)
+  status           OfferStatus    @default(PENDING)
+  expiresAt        DateTime?
+  respondedAt      DateTime?
+  notes            String?        @db.Text
+
+  debtAccountId String
+  debtAccount   DebtAccount @relation(fields: [debtAccountId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([debtAccountId])
+  @@index([status])
+  @@map("offers")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?      @db.Text
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+
+  clientId      String?
+  client        Client?      @relation(fields: [clientId], references: [id])
+  debtAccountId String?
+  debtAccount   DebtAccount? @relation(fields: [debtAccountId], references: [id])
+
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  createdById  String?
+  createdBy    User?   @relation("TaskCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assignedToId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([clientId])
+  @@map("tasks")
+}
+
+model Document {
+  id          String           @id @default(cuid())
+  filename    String
+  mimeType    String
+  size        Int              // bytes
+  storagePath String           // path relative to upload root
+  category    DocumentCategory @default(OTHER)
+  notes       String?          @db.Text
+
+  clientId      String?
+  client        Client?      @relation(fields: [clientId], references: [id])
+  debtAccountId String?
+  debtAccount   DebtAccount? @relation(fields: [debtAccountId], references: [id])
+
+  // Soft reference — not a FK so documents survive user deletion
+  uploadedById String?
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([debtAccountId])
+  @@map("documents")
+}
+
+model AuditLog {
+  id         String  @id @default(cuid())
+  action     String  // "CREATE" | "UPDATE" | "DELETE"
+  entityType String  // model name, e.g. "Client", "DebtAccount"
+  entityId   String
+  changes    Json?   // { before: {...}, after: {...} }
+  ipAddress  String?
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("audit_logs")
 }
