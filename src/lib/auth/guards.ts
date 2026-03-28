@@ -22,7 +22,7 @@ export async function requireAuth() {
  */
 export async function requireRole(allowed: UserRole[]) {
   const session = await requireAuth();
-  const role = (session.user as { role?: UserRole }).role;
+  const role = session.user.role;
 
   if (!role || !allowed.includes(role)) {
     redirect("/dashboard"); // insufficient permissions → back to home

@@ -1,14 +1,13 @@
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/auth";
+import { formatDate } from "@/lib/utils";
+import {
+  CARD, CARD_HEADER, CARD_TITLE,
+  PILL, TASK_PRIORITY_BADGE,
+  PAGE_TITLE, PAGE_SUBTITLE,
+} from "@/lib/ui-classes";
 
 export const metadata = { title: "Dashboard — DZC DMS" };
-
-const PRIORITY_BADGE: Record<string, string> = {
-  URGENT: "bg-red-100 text-red-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  LOW: "bg-gray-100 text-gray-500",
-};
 
 const ACTIVITY_LABEL: Record<string, string> = {
   CALL: "Call",
@@ -29,14 +28,6 @@ const ACCOUNT_STATUS_LABEL: Record<string, string> = {
   WITHDRAWN: "Withdrawn",
 };
 
-function formatDate(date: Date | null): string {
-  if (!date) return "—";
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -138,21 +129,26 @@ export default async function DashboardPage() {
     { label: "Overdue Tasks", value: overdueTasksCount },
   ];
 
+  const statAccents = [
+    "border-l-4 border-l-blue-500",
+    "border-l-4 border-l-violet-500",
+    "border-l-4 border-l-amber-500",
+    "border-l-4 border-l-red-500",
+  ];
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Welcome back, {session?.user?.name ?? "—"}
-        </p>
+        <h1 className={PAGE_TITLE}>Dashboard</h1>
+        <p className={PAGE_SUBTITLE}>Welcome back, {session?.user?.name ?? "—"}</p>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value }) => (
-          <div key={label} className="rounded-xl border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="text-3xl font-semibold mt-1 tabular-nums">{value}</p>
+        {stats.map(({ label, value }, i) => (
+          <div key={label} className={`${CARD} p-5 ${statAccents[i]}`}>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+            <p className="text-3xl font-semibold mt-2 tabular-nums">{value}</p>
           </div>
         ))}
       </div>
@@ -160,23 +156,20 @@ export default async function DashboardPage() {
       {/* Follow-ups today & Overdue tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Follow-ups due today */}
-        <div className="rounded-xl border bg-card">
-          <div className="px-5 py-4 border-b">
-            <h2 className="text-sm font-semibold">Follow-ups Due Today</h2>
+        <div className={CARD}>
+          <div className={CARD_HEADER}>
+            <h2 className={CARD_TITLE}>Follow-ups Due Today</h2>
           </div>
           {followUpsToday.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-muted-foreground">
-              No follow-ups due today.
+            <p className="px-5 py-8 text-sm text-muted-foreground text-center">
+              All clear — no follow-ups due today.
             </p>
           ) : (
             <ul className="divide-y">
               {followUpsToday.map((task) => (
                 <li key={task.id} className="px-5 py-3 flex items-start gap-3">
-                  <span
-                    className={`mt-0.5 shrink-0 text-xs rounded px-1.5 py-0.5 font-medium ${PRIORITY_BADGE[task.priority] ?? "bg-gray-100 text-gray-500"}`}
-                  >
-                    {task.priority.charAt(0) +
-                      task.priority.slice(1).toLowerCase()}
+                  <span className={`mt-0.5 shrink-0 ${PILL} ${TASK_PRIORITY_BADGE[task.priority] ?? ""}`}>
+                    {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{task.title}</p>
@@ -194,21 +187,19 @@ export default async function DashboardPage() {
         </div>
 
         {/* Overdue tasks */}
-        <div className="rounded-xl border bg-card">
-          <div className="px-5 py-4 border-b">
-            <h2 className="text-sm font-semibold">Overdue Tasks</h2>
+        <div className={CARD}>
+          <div className={CARD_HEADER}>
+            <h2 className={CARD_TITLE}>Overdue Tasks</h2>
           </div>
           {overdueTasksList.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-muted-foreground">
-              No overdue tasks.
+            <p className="px-5 py-8 text-sm text-muted-foreground text-center">
+              No overdue tasks. Great work!
             </p>
           ) : (
             <ul className="divide-y">
               {overdueTasksList.map((task) => (
                 <li key={task.id} className="px-5 py-3 flex items-start gap-3">
-                  <span
-                    className={`mt-0.5 shrink-0 text-xs rounded px-1.5 py-0.5 font-medium ${PRIORITY_BADGE[task.priority] ?? "bg-gray-100 text-gray-500"}`}
-                  >
+                  <span className={`mt-0.5 shrink-0 ${PILL} ${TASK_PRIORITY_BADGE[task.priority] ?? ""}`}>
                     {task.priority.charAt(0) +
                       task.priority.slice(1).toLowerCase()}
                   </span>
@@ -230,33 +221,33 @@ export default async function DashboardPage() {
       </div>
 
       {/* Active accounts by status */}
-      <div className="rounded-xl border bg-card">
-        <div className="px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">Accounts by Status</h2>
+      <div className={CARD}>
+        <div className={CARD_HEADER}>
+          <h2 className={CARD_TITLE}>Accounts by Status</h2>
         </div>
-        <div className="px-5 py-4 flex flex-wrap gap-3">
+        <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {Object.entries(ACCOUNT_STATUS_LABEL).map(([status, label]) => (
             <div
               key={status}
-              className="flex items-baseline gap-2 bg-muted rounded-lg px-4 py-3"
+              className="flex flex-col gap-1 bg-muted/60 rounded-xl px-4 py-3 border border-border/60"
             >
-              <span className="text-xl font-semibold tabular-nums">
+              <span className="text-2xl font-semibold tabular-nums">
                 {statusCountMap[status] ?? 0}
               </span>
-              <span className="text-sm text-muted-foreground">{label}</span>
+              <span className="text-xs text-muted-foreground font-medium">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Recent activity */}
-      <div className="rounded-xl border bg-card">
-        <div className="px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">Recent Activity</h2>
+      <div className={CARD}>
+        <div className={CARD_HEADER}>
+          <h2 className={CARD_TITLE}>Recent Activity</h2>
         </div>
         {recentActivity.length === 0 ? (
           <p className="px-5 py-6 text-sm text-muted-foreground">
-            No recent activity.
+            No recent activity logged yet.
           </p>
         ) : (
           <ul className="divide-y">
@@ -265,7 +256,7 @@ export default async function DashboardPage() {
                 key={activity.id}
                 className="px-5 py-3 flex items-start gap-4"
               >
-                <span className="shrink-0 text-xs bg-muted text-muted-foreground rounded px-2 py-1 mt-0.5">
+                <span className="shrink-0 inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium mt-0.5">
                   {ACTIVITY_LABEL[activity.type] ?? activity.type}
                 </span>
                 <div className="min-w-0 flex-1">

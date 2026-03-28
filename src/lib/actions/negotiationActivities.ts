@@ -59,50 +59,54 @@ export async function createActivityAction(
   } = parsed.data;
 
   try {
-    // 1. Create the activity
-    const activity = await prisma.negotiationActivity.create({
-      data: {
-        type,
-        notes,
-        occurredAt,
-        nextActionDate: nextActionDate ?? null,
-        debtAccountId,
-        authorId: session.user.id,
-      },
-    });
-
-    // 2. Update the account: nextFollowUpDate and (if a contact type) lastContactDate
-    const accountUpdates: Record<string, Date> = {};
-    if (nextActionDate) {
-      accountUpdates.nextFollowUpDate = nextActionDate;
-    }
-    if (CONTACT_TYPES.has(type)) {
-      accountUpdates.lastContactDate = occurredAt;
-    }
-    if (Object.keys(accountUpdates).length > 0) {
-      await prisma.debtAccount.update({
-        where: { id: debtAccountId },
-        data: accountUpdates,
-      });
-    }
-
-    // 3. Optionally auto-create a follow-up task
-    if (createFollowUpTask && nextActionDate) {
-      await prisma.task.create({
+    const activity = await prisma.$transaction(async (tx) => {
+      // 1. Create the activity
+      const created = await tx.negotiationActivity.create({
         data: {
-          title: FOLLOW_UP_TITLE[type] ?? "Follow-up",
-          status: "TODO",
-          priority: "MEDIUM",
-          dueDate: nextActionDate,
+          type,
+          notes,
+          occurredAt,
+          nextActionDate: nextActionDate ?? null,
           debtAccountId,
-          clientId: accountClientId ?? null,
-          createdById: session.user.id,
-          assignedToId: session.user.id,
+          authorId: session.user.id,
         },
       });
-    }
 
-    // 4. Audit log
+      // 2. Update the account: nextFollowUpDate and (if a contact type) lastContactDate
+      const accountUpdates: Record<string, Date> = {};
+      if (nextActionDate) {
+        accountUpdates.nextFollowUpDate = nextActionDate;
+      }
+      if (CONTACT_TYPES.has(type)) {
+        accountUpdates.lastContactDate = occurredAt;
+      }
+      if (Object.keys(accountUpdates).length > 0) {
+        await tx.debtAccount.update({
+          where: { id: debtAccountId },
+          data: accountUpdates,
+        });
+      }
+
+      // 3. Optionally auto-create a follow-up task
+      if (createFollowUpTask && nextActionDate) {
+        await tx.task.create({
+          data: {
+            title: FOLLOW_UP_TITLE[type] ?? "Follow-up",
+            status: "TODO",
+            priority: "MEDIUM",
+            dueDate: nextActionDate,
+            debtAccountId,
+            clientId: accountClientId ?? null,
+            createdById: session.user.id,
+            assignedToId: session.user.id,
+          },
+        });
+      }
+
+      return created;
+    });
+
+    // 4. Audit log (outside transaction — non-critical)
     await writeAuditLog({
       userId: session.user.id,
       action: "CREATE",

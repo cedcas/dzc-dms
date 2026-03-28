@@ -4,8 +4,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
 import type { CreditorType, ContactChannel, DebtAccountStatus } from "@prisma/client";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import {
+  CARD, CARD_HEADER, CARD_TITLE,
+  TABLE_TH, TABLE_TR, TABLE_TD,
+  PILL, ACCOUNT_STATUS_BADGE, CREDITOR_TYPE_BADGE,
+  PILL_GREEN, PILL_BLUE, PILL_RED, PILL_GRAY,
+  LINK_SUBTLE,
+} from "@/lib/ui-classes";
 
-// ─── Label / badge maps ────────────────────────────────────────────────────
+// ─── Label maps ────────────────────────────────────────────────────────────
 
 const TYPE_LABEL: Record<CreditorType, string> = {
   ORIGINAL_CREDITOR: "Original Creditor",
@@ -13,14 +21,6 @@ const TYPE_LABEL: Record<CreditorType, string> = {
   LAW_FIRM: "Law Firm",
   DEBT_BUYER: "Debt Buyer",
   OTHER: "Other",
-};
-
-const TYPE_BADGE: Record<CreditorType, string> = {
-  ORIGINAL_CREDITOR: "bg-blue-100 text-blue-700",
-  COLLECTION_AGENCY: "bg-orange-100 text-orange-700",
-  LAW_FIRM: "bg-purple-100 text-purple-700",
-  DEBT_BUYER: "bg-yellow-100 text-yellow-700",
-  OTHER: "bg-gray-100 text-gray-500",
 };
 
 const CHANNEL_LABEL: Record<ContactChannel, string> = {
@@ -40,34 +40,6 @@ const DEBT_STATUS_LABEL: Record<DebtAccountStatus, string> = {
   DISPUTED: "Disputed",
   WITHDRAWN: "Withdrawn",
 };
-
-const DEBT_STATUS_BADGE: Record<DebtAccountStatus, string> = {
-  ACTIVE: "bg-blue-100 text-blue-700",
-  IN_NEGOTIATION: "bg-yellow-100 text-yellow-700",
-  SETTLED: "bg-green-100 text-green-700",
-  CHARGED_OFF: "bg-gray-100 text-gray-500",
-  DISPUTED: "bg-orange-100 text-orange-700",
-  WITHDRAWN: "bg-red-100 text-red-600",
-};
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
-
-function formatDate(d: Date | null | undefined) {
-  if (!d) return "—";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(n: { toString(): string }) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(n.toString()));
-}
 
 // ─── Page ──────────────────────────────────────────────────────────────────
 
@@ -115,16 +87,12 @@ export default async function CreditorDetailPage({
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold">{creditor.name}</h1>
             {creditor.type && (
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${TYPE_BADGE[creditor.type]}`}
-              >
+              <span className={`${PILL} ${CREDITOR_TYPE_BADGE[creditor.type]}`}>
                 {TYPE_LABEL[creditor.type]}
               </span>
             )}
             {!creditor.isActive && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-500">
-                Inactive
-              </span>
+              <span className={`${PILL} ${PILL_GRAY}`}>Inactive</span>
             )}
           </div>
         </div>
@@ -138,8 +106,8 @@ export default async function CreditorDetailPage({
 
       {/* Contact info + Notes */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-xl border bg-card p-5 space-y-4">
-          <h2 className="text-sm font-semibold">Contact Information</h2>
+        <div className={`lg:col-span-2 ${CARD} p-5 space-y-4`}>
+          <h2 className={CARD_TITLE}>Contact Information</h2>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
             <div>
               <dt className="text-xs text-muted-foreground uppercase tracking-wide">
@@ -186,8 +154,8 @@ export default async function CreditorDetailPage({
           </dl>
         </div>
 
-        <div className="rounded-xl border bg-card p-5">
-          <h2 className="text-sm font-semibold mb-3">Internal Notes</h2>
+        <div className={`${CARD} p-5`}>
+          <h2 className={`${CARD_TITLE} mb-3`}>Internal Notes</h2>
           {creditor.notes ? (
             <p className="text-sm whitespace-pre-line leading-relaxed">
               {creditor.notes}
@@ -199,9 +167,9 @@ export default async function CreditorDetailPage({
       </div>
 
       {/* Linked debt accounts */}
-      <div className="rounded-xl border bg-card">
-        <div className="px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">
+      <div className={CARD}>
+        <div className={CARD_HEADER}>
+          <h2 className={CARD_TITLE}>
             Linked Debt Accounts ({creditor.debtAccounts.length})
           </h2>
         </div>
@@ -212,58 +180,41 @@ export default async function CreditorDetailPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+              <thead className="bg-muted/50 border-b">
                 <tr className="text-left">
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Client
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Acct #
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Original
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Current
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Follow-Up
-                  </th>
+                  <th className={TABLE_TH}>Client</th>
+                  <th className={TABLE_TH}>Acct #</th>
+                  <th className={`${TABLE_TH} text-right`}>Original</th>
+                  <th className={`${TABLE_TH} text-right`}>Current</th>
+                  <th className={TABLE_TH}>Status</th>
+                  <th className={TABLE_TH}>Follow-Up</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {creditor.debtAccounts.map((acct) => (
-                  <tr key={acct.id} className="hover:bg-muted/20">
-                    <td className="px-4 py-3 font-medium">
-                      <Link
-                        href={`/clients/${acct.client.id}`}
-                        className="hover:underline"
-                      >
+                  <tr key={acct.id} className={TABLE_TR}>
+                    <td className={TABLE_TD}>
+                      <Link href={`/clients/${acct.client.id}`} className={LINK_SUBTLE}>
                         {acct.client.firstName} {acct.client.lastName}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    <td className={`${TABLE_TD} font-mono text-xs text-muted-foreground`}>
                       <Link href={`/accounts/${acct.id}`} className="hover:underline">
                         {acct.accountNumber ?? "View"}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-right">
+                    <td className={`${TABLE_TD} tabular-nums text-right`}>
                       {formatCurrency(acct.originalBalance)}
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-right">
+                    <td className={`${TABLE_TD} tabular-nums text-right`}>
                       {formatCurrency(acct.currentBalance)}
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded ${DEBT_STATUS_BADGE[acct.status]}`}
-                      >
+                    <td className={TABLE_TD}>
+                      <span className={`${PILL} ${ACCOUNT_STATUS_BADGE[acct.status]}`}>
                         {DEBT_STATUS_LABEL[acct.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className={`${TABLE_TD} text-xs text-muted-foreground`}>
                       {acct.nextFollowUpDate ? formatDate(acct.nextFollowUpDate) : "—"}
                     </td>
                   </tr>
@@ -275,9 +226,9 @@ export default async function CreditorDetailPage({
       </div>
 
       {/* Audit timeline */}
-      <div className="rounded-xl border bg-card">
-        <div className="px-5 py-4 border-b">
-          <h2 className="text-sm font-semibold">Change History</h2>
+      <div className={CARD}>
+        <div className={CARD_HEADER}>
+          <h2 className={CARD_TITLE}>Change History</h2>
         </div>
         {auditLogs.length === 0 ? (
           <p className="px-5 py-8 text-sm text-muted-foreground">
@@ -288,12 +239,12 @@ export default async function CreditorDetailPage({
             {auditLogs.map((log) => (
               <li key={log.id} className="px-5 py-3 flex items-start gap-3">
                 <span
-                  className={`shrink-0 text-xs rounded px-2 py-0.5 font-medium mt-0.5 ${
+                  className={`shrink-0 mt-0.5 ${PILL} ${
                     log.action === "CREATE"
-                      ? "bg-green-100 text-green-700"
+                      ? PILL_GREEN
                       : log.action === "DELETE"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? PILL_RED
+                        : PILL_BLUE
                   }`}
                 >
                   {log.action}

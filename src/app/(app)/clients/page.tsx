@@ -4,6 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import type { ClientStatus, Prisma } from "@prisma/client";
+import {
+  PAGE_TITLE, PAGE_SUBTITLE, PAGE_HEADER,
+  FIELD_CLASS, SELECT_CLASS, FILTER_BAR,
+  TABLE_WRAPPER, TABLE_TH, TABLE_TR, TABLE_TD, TABLE_EMPTY_TD,
+  PILL, CLIENT_STATUS_BADGE,
+  LINK_SUBTLE,
+} from "@/lib/ui-classes";
 
 export const metadata = { title: "Clients — DZC DMS" };
 
@@ -15,14 +22,6 @@ const STATUS_LABEL: Record<ClientStatus, string> = {
   GRADUATED: "Graduated",
   WITHDRAWN: "Withdrawn",
   DEFAULTED: "Defaulted",
-};
-
-const STATUS_BADGE: Record<ClientStatus, string> = {
-  ONBOARDING: "bg-blue-100 text-blue-700",
-  ACTIVE: "bg-green-100 text-green-700",
-  GRADUATED: "bg-purple-100 text-purple-700",
-  WITHDRAWN: "bg-gray-100 text-gray-500",
-  DEFAULTED: "bg-red-100 text-red-700",
 };
 
 export default async function ClientsPage({
@@ -87,12 +86,10 @@ export default async function ClientsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className={PAGE_HEADER}>
         <div>
-          <h1 className="text-2xl font-semibold">Clients</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {total} client{total !== 1 ? "s" : ""}
-          </p>
+          <h1 className={PAGE_TITLE}>Clients</h1>
+          <p className={PAGE_SUBTITLE}>{total} client{total !== 1 ? "s" : ""}</p>
         </div>
         <Link href="/clients/new" className={buttonVariants()}>
           New Client
@@ -100,18 +97,18 @@ export default async function ClientsPage({
       </div>
 
       {/* Filters */}
-      <form method="get" action="/clients" className="flex flex-wrap gap-3">
+      <form method="get" action="/clients" className={FILTER_BAR}>
         <input
           type="text"
           name="q"
           defaultValue={q}
           placeholder="Search name, email, phone…"
-          className="h-8 w-64 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={`${FIELD_CLASS} w-64`}
         />
         <select
           name="status"
           defaultValue={status ?? ""}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={SELECT_CLASS}
         >
           <option value="">All Statuses</option>
           {Object.entries(STATUS_LABEL).map(([value, label]) => (
@@ -131,59 +128,49 @@ export default async function ClientsPage({
       </form>
 
       {/* Table */}
-      <div className="rounded-xl border overflow-hidden">
+      <div className={TABLE_WRAPPER}>
         <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/50 border-b">
             <tr className="text-left">
-              <th className="px-4 py-3 font-medium text-muted-foreground">Name</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Contact</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Accounts</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Handler</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Enrolled</th>
+              <th className={TABLE_TH}>Name</th>
+              <th className={TABLE_TH}>Contact</th>
+              <th className={TABLE_TH}>Status</th>
+              <th className={TABLE_TH}>Accounts</th>
+              <th className={TABLE_TH}>Handler</th>
+              <th className={TABLE_TH}>Enrolled</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {clients.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-4 py-10 text-center text-sm text-muted-foreground"
-                >
-                  No clients found.
-                </td>
+                <td colSpan={6} className={TABLE_EMPTY_TD}>No clients found.</td>
               </tr>
             ) : (
               clients.map((c) => (
-                <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/clients/${c.id}`}
-                      className="font-medium hover:underline underline-offset-2"
-                    >
+                <tr key={c.id} className={TABLE_TR}>
+                  <td className={TABLE_TD}>
+                    <Link href={`/clients/${c.id}`} className={LINK_SUBTLE}>
                       {c.firstName} {c.lastName}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className={`${TABLE_TD} text-muted-foreground`}>
                     <div>{c.email ?? "—"}</div>
                     {c.phone && (
                       <div className="text-xs mt-0.5">{c.phone}</div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[c.status]}`}
-                    >
+                  <td className={TABLE_TD}>
+                    <span className={`${PILL} ${CLIENT_STATUS_BADGE[c.status]}`}>
                       {STATUS_LABEL[c.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                  <td className={`${TABLE_TD} tabular-nums text-muted-foreground`}>
                     {c._count.debtAccounts}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className={`${TABLE_TD} text-muted-foreground`}>
                     {c.handler?.name ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className={`${TABLE_TD} text-muted-foreground`}>
                     {c.enrolledAt.toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",

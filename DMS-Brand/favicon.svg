@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+    
+    <defs>
+      <linearGradient id="shieldGrad" x1="42" y1="46" x2="202" y2="222" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#1D4ED8"/>
+        <stop offset="100%" stop-color="#06B6D4"/>
+      </linearGradient>
+    </defs>
+    <g transform="">
+      <path d="M46 64c0-6.6 5.4-12 12-12h112c2.7 0 5.3 1.4 6.7 3.7l13.6 22.3c1.1 1.7 1.7 3.8 1.7 5.9v52.8c0 17.9-8.5 34.8-22.9 45.7L128 214l-41.1-31.6C72.5 171.5 64 154.6 64 136.7V64z" fill="url(#shieldGrad)"/>
+      <path d="M82 38h82c5.5 0 10.5 3 13.1 7.8L190 68" stroke="#06B6D4" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M68 52h92c5.5 0 10.5 3 13.1 7.8L181 74" stroke="#67E8F9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M78 144l35 26 67-75" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M76 130l37 29 44-49" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <text x="77" y="111" fill="#FFFFFF" font-family="Inter, Arial, Helvetica, sans-serif" font-size="42" font-weight="800" letter-spacing="-1">DMS</text>
+    </g>
+    </svg>

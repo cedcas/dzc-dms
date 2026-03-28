@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/db/prisma";
+import { requireAuth } from "@/lib/auth/guards";
+import {
+  PAGE_TITLE, PAGE_SUBTITLE, SECTION_LABEL,
+  CARD,
+  TABLE_TH, TABLE_TR, TABLE_TD,
+  PILL, ACCOUNT_STATUS_BADGE,
+} from "@/lib/ui-classes";
 
 export const metadata = { title: "Reports — DZC DMS" };
 
@@ -9,15 +16,6 @@ const ACCOUNT_STATUS_LABEL: Record<string, string> = {
   CHARGED_OFF: "Charged Off",
   DISPUTED: "Disputed",
   WITHDRAWN: "Withdrawn",
-};
-
-const ACCOUNT_STATUS_COLOR: Record<string, string> = {
-  ACTIVE: "bg-blue-100 text-blue-700",
-  IN_NEGOTIATION: "bg-yellow-100 text-yellow-700",
-  SETTLED: "bg-green-100 text-green-700",
-  CHARGED_OFF: "bg-gray-100 text-gray-600",
-  DISPUTED: "bg-orange-100 text-orange-700",
-  WITHDRAWN: "bg-red-100 text-red-700",
 };
 
 function formatCurrency(value: number): string {
@@ -33,6 +31,7 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  await requireAuth();
   const { days } = await searchParams;
   const noActivityDays = Math.max(1, parseInt(String(days ?? "30"), 10) || 30);
 
@@ -136,17 +135,13 @@ export default async function ReportsPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold">Reports</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Program-wide metrics and portfolio overview
-        </p>
+        <h1 className={PAGE_TITLE}>Reports</h1>
+        <p className={PAGE_SUBTITLE}>Program-wide metrics and portfolio overview</p>
       </div>
 
       {/* Key stats */}
       <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          Program Overview
-        </h2>
+        <h2 className={SECTION_LABEL}>Program Overview</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Active Clients" value={activeClientsCount} />
           <StatCard label="Active Accounts" value={activeAccountsCount} />
@@ -161,17 +156,15 @@ export default async function ReportsPage({
 
       {/* Settlement metrics */}
       <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          Settlement Performance
-        </h2>
+        <h2 className={SECTION_LABEL}>Settlement Performance</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-xl border bg-card p-5 shadow-sm">
+          <div className={`${CARD} p-5`}>
             <p className="text-sm text-muted-foreground">Accounts Settled</p>
             <p className="text-3xl font-semibold mt-1 tabular-nums">
               {settledCount}
             </p>
           </div>
-          <div className="rounded-xl border bg-card p-5 shadow-sm">
+          <div className={`${CARD} p-5`}>
             <p className="text-sm text-muted-foreground">Total Settled Amount</p>
             <p className="text-3xl font-semibold mt-1 tabular-nums">
               {formatCurrency(totalSettled)}
@@ -182,10 +175,8 @@ export default async function ReportsPage({
               </p>
             )}
           </div>
-          <div className="rounded-xl border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">
-              Avg Settlement Rate
-            </p>
+          <div className={`${CARD} p-5`}>
+            <p className="text-sm text-muted-foreground">Avg Settlement Rate</p>
             <p className="text-3xl font-semibold mt-1 tabular-nums">
               {avgSettlementPct > 0 ? `${avgSettlementPct.toFixed(1)}%` : "—"}
             </p>
@@ -198,28 +189,16 @@ export default async function ReportsPage({
 
       {/* Accounts by status */}
       <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          Accounts by Status
-        </h2>
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <h2 className={SECTION_LABEL}>Accounts by Status</h2>
+        <div className={`${CARD} overflow-hidden`}>
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
+            <thead className="border-b bg-muted/50">
               <tr>
-                <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                  Status
-                </th>
-                <th className="text-right px-5 py-3 font-medium text-muted-foreground">
-                  Accounts
-                </th>
-                <th className="text-right px-5 py-3 font-medium text-muted-foreground hidden sm:table-cell">
-                  % of Total
-                </th>
-                <th className="text-right px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">
-                  Original Balance
-                </th>
-                <th className="text-right px-5 py-3 font-medium text-muted-foreground hidden md:table-cell">
-                  Current Balance
-                </th>
+                <th className={`text-left ${TABLE_TH}`}>Status</th>
+                <th className={`text-right ${TABLE_TH}`}>Accounts</th>
+                <th className={`text-right ${TABLE_TH} hidden sm:table-cell`}>% of Total</th>
+                <th className={`text-right ${TABLE_TH} hidden md:table-cell`}>Original Balance</th>
+                <th className={`text-right ${TABLE_TH} hidden md:table-cell`}>Current Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -231,24 +210,22 @@ export default async function ReportsPage({
                     ? ((data.count / totalAccounts) * 100).toFixed(1)
                     : "0.0";
                 return (
-                  <tr key={status} className="hover:bg-muted/20">
-                    <td className="px-5 py-3">
-                      <span
-                        className={`text-xs rounded px-2 py-0.5 font-medium ${ACCOUNT_STATUS_COLOR[status] ?? "bg-gray-100 text-gray-600"}`}
-                      >
+                  <tr key={status} className={TABLE_TR}>
+                    <td className={TABLE_TD}>
+                      <span className={`${PILL} ${ACCOUNT_STATUS_BADGE[status] ?? ""}`}>
                         {label}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums font-medium">
+                    <td className={`${TABLE_TD} text-right tabular-nums font-medium`}>
                       {data.count}
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-muted-foreground hidden sm:table-cell">
+                    <td className={`${TABLE_TD} text-right tabular-nums text-muted-foreground hidden sm:table-cell`}>
                       {pct}%
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-muted-foreground hidden md:table-cell">
+                    <td className={`${TABLE_TD} text-right tabular-nums text-muted-foreground hidden md:table-cell`}>
                       {formatCurrency(data.originalBalance)}
                     </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-muted-foreground hidden md:table-cell">
+                    <td className={`${TABLE_TD} text-right tabular-nums text-muted-foreground hidden md:table-cell`}>
                       {formatCurrency(data.currentBalance)}
                     </td>
                   </tr>
@@ -292,7 +269,7 @@ export default async function ReportsPage({
           </h2>
           <NoActivityForm days={noActivityDays} />
         </div>
-        <div className="rounded-xl border bg-card p-5 shadow-sm flex items-baseline gap-3">
+        <div className={`${CARD} p-5 flex items-baseline gap-3`}>
           <span className="text-3xl font-semibold tabular-nums">
             {noActivityCount}
           </span>
@@ -317,14 +294,14 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-5 shadow-sm ${highlight ? "border-red-200 bg-red-50" : "bg-card"}`}
+      className={`rounded-xl border p-5 shadow-sm ${
+        highlight ? "border-destructive/30 bg-destructive/5" : "bg-card"
+      }`}
     >
-      <p className={`text-sm ${highlight ? "text-red-600" : "text-muted-foreground"}`}>
+      <p className={`text-sm ${highlight ? "text-destructive" : "text-muted-foreground"}`}>
         {label}
       </p>
-      <p
-        className={`text-3xl font-semibold mt-1 tabular-nums ${highlight ? "text-red-700" : ""}`}
-      >
+      <p className={`text-3xl font-semibold mt-1 tabular-nums ${highlight ? "text-destructive" : ""}`}>
         {value}
       </p>
     </div>

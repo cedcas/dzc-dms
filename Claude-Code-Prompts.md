@@ -332,6 +332,7 @@ After changes:
 - summarize the top technical debt items that remain
 - recommend the best next three features after MVP
 
+Note: Ran this prompt.
 ---
 
 ## Prompt 16 — Future HubSpot integration planning

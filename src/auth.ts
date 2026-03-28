@@ -30,10 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) {
-          console.log("[auth] Zod validation failed", parsed.error.flatten());
-          return null;
-        }
+        if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
 
@@ -42,17 +39,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user = await prisma.user.findUnique({
             where: { email: email.toLowerCase() },
           });
-        } catch (e) {
-          console.error("[auth] DB error", e);
+        } catch {
           return null;
         }
-
-        console.log("[auth] user lookup:", email, "found:", !!user);
 
         if (!user || !user.isActive) return null;
 
         const passwordMatch = await compare(password, user.password);
-        console.log("[auth] password match:", passwordMatch);
         if (!passwordMatch) return null;
 
         return {

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClientAction, updateClientAction } from "@/lib/actions/clients";
 import type { ClientStatus } from "@prisma/client";
+import { FIELD_CLASS, TEXTAREA_CLASS } from "@/lib/ui-classes";
 
 type UserOption = { id: string; name: string };
 
@@ -30,11 +31,6 @@ const STATUS_OPTIONS: { value: ClientStatus; label: string }[] = [
   { value: "DEFAULTED", label: "Defaulted" },
 ];
 
-const FIELD_CLASS =
-  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
-const TEXTAREA_CLASS =
-  "w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-y";
 
 export function ClientForm({
   client,

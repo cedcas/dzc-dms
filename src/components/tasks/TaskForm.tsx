@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createTaskAction, updateTaskAction } from "@/lib/actions/tasks";
 import type { TaskStatus, TaskPriority } from "@prisma/client";
+import { FIELD_CLASS, TEXTAREA_CLASS } from "@/lib/ui-classes";
 
 type UserOption = { id: string; name: string };
 type ClientOption = { id: string; firstName: string; lastName: string };
@@ -24,11 +25,6 @@ type TaskData = {
   assignedToId?: string | null;
 };
 
-const FIELD_CLASS =
-  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
-const TEXTAREA_CLASS =
-  "w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 resize-y";
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: "TODO", label: "To Do" },

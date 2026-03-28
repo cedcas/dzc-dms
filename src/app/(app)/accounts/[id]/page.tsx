@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/guards";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -32,12 +33,12 @@ const DEBT_STATUS_LABEL: Record<DebtAccountStatus, string> = {
 };
 
 const DEBT_STATUS_BADGE: Record<DebtAccountStatus, string> = {
-  ACTIVE: "bg-blue-100 text-blue-700",
-  IN_NEGOTIATION: "bg-yellow-100 text-yellow-700",
-  SETTLED: "bg-green-100 text-green-700",
-  CHARGED_OFF: "bg-gray-100 text-gray-500",
-  DISPUTED: "bg-orange-100 text-orange-700",
-  WITHDRAWN: "bg-red-100 text-red-600",
+  ACTIVE: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20",
+  IN_NEGOTIATION: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  SETTLED: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  CHARGED_OFF: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  DISPUTED: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  WITHDRAWN: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
 };
 
 const DELINQUENCY_LABEL: Record<DelinquencyStage, string> = {
@@ -51,13 +52,13 @@ const DELINQUENCY_LABEL: Record<DelinquencyStage, string> = {
 };
 
 const DELINQUENCY_BADGE: Record<DelinquencyStage, string> = {
-  CURRENT: "bg-green-100 text-green-700",
-  LATE_30: "bg-yellow-100 text-yellow-700",
-  LATE_60: "bg-orange-100 text-orange-700",
-  LATE_90: "bg-red-100 text-red-600",
-  LATE_120: "bg-red-200 text-red-700",
-  LATE_180_PLUS: "bg-red-300 text-red-800",
-  CHARGED_OFF: "bg-gray-100 text-gray-500",
+  CURRENT: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  LATE_30: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  LATE_60: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  LATE_90: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
+  LATE_120: "bg-red-100 text-red-700 ring-1 ring-inset ring-red-700/25",
+  LATE_180_PLUS: "bg-red-200 text-red-800 ring-1 ring-inset ring-red-700/30",
+  CHARGED_OFF: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
 };
 
 const OFFER_STATUS_LABEL: Record<OfferStatus, string> = {
@@ -69,11 +70,11 @@ const OFFER_STATUS_LABEL: Record<OfferStatus, string> = {
 };
 
 const OFFER_STATUS_BADGE: Record<OfferStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700",
-  ACCEPTED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-600",
-  COUNTERED: "bg-orange-100 text-orange-700",
-  EXPIRED: "bg-gray-100 text-gray-500",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  ACCEPTED: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  REJECTED: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
+  COUNTERED: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  EXPIRED: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
 };
 
 const PAYMENT_TYPE_LABEL: Record<PaymentType, string> = {
@@ -82,10 +83,10 @@ const PAYMENT_TYPE_LABEL: Record<PaymentType, string> = {
 };
 
 const TASK_PRIORITY_BADGE: Record<TaskPriority, string> = {
-  LOW: "bg-gray-100 text-gray-500",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  URGENT: "bg-red-100 text-red-700",
+  LOW: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  MEDIUM: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  HIGH: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  URGENT: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
 };
 
 const ACTIVITY_LABEL: Record<ActivityType, string> = {
@@ -102,24 +103,6 @@ const ACTIVITY_LABEL: Record<ActivityType, string> = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-
-function formatDate(d: Date | null | undefined) {
-  if (!d) return "—";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(n: { toString(): string } | null | undefined) {
-  if (n == null) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(n.toString()));
-}
 
 function isOverdue(date: Date | null | undefined) {
   if (!date) return false;
@@ -208,13 +191,13 @@ export default async function DebtAccountDetailPage({
               </span>
             )}
             <span
-              className={`text-xs font-medium px-2 py-0.5 rounded ${DEBT_STATUS_BADGE[account.status]}`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${DEBT_STATUS_BADGE[account.status]}`}
             >
               {DEBT_STATUS_LABEL[account.status]}
             </span>
             {account.delinquencyStage && (
               <span
-                className={`text-xs font-medium px-2 py-0.5 rounded ${DELINQUENCY_BADGE[account.delinquencyStage]}`}
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${DELINQUENCY_BADGE[account.delinquencyStage]}`}
               >
                 {DELINQUENCY_LABEL[account.delinquencyStage]}
               </span>
@@ -340,32 +323,16 @@ export default async function DebtAccountDetailPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+              <thead className="bg-muted/50 border-b">
                 <tr className="text-left">
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Direction
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    % of Bal.
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Payment
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Source
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Expires
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Date
-                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Direction</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Amount</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">% of Bal.</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Payment</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Source</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Expires</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -403,7 +370,7 @@ export default async function DebtAccountDetailPage({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded ${OFFER_STATUS_BADGE[offer.status]}`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${OFFER_STATUS_BADGE[offer.status]}`}
                       >
                         {OFFER_STATUS_LABEL[offer.status]}
                       </span>
@@ -469,7 +436,7 @@ export default async function DebtAccountDetailPage({
                     <span className="h-5 w-5 shrink-0 rounded-full bg-muted" />
                   )}
                   <span
-                    className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded ${TASK_PRIORITY_BADGE[task.priority]}`}
+                    className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TASK_PRIORITY_BADGE[task.priority]}`}
                   >
                     {task.priority.charAt(0) +
                       task.priority.slice(1).toLowerCase()}
@@ -518,7 +485,7 @@ export default async function DebtAccountDetailPage({
           <ul className="divide-y">
             {account.activities.map((act) => (
               <li key={act.id} className="px-5 py-3 flex items-start gap-3">
-                <span className="shrink-0 text-xs bg-muted text-muted-foreground rounded px-2 py-0.5 mt-0.5">
+                <span className="shrink-0 inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium mt-0.5">
                   {ACTIVITY_LABEL[act.type]}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -573,12 +540,12 @@ export default async function DebtAccountDetailPage({
             {auditLogs.map((log) => (
               <li key={log.id} className="px-5 py-3 flex items-start gap-3">
                 <span
-                  className={`shrink-0 text-xs rounded px-2 py-0.5 font-medium mt-0.5 ${
+                  className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium mt-0.5 ${
                     log.action === "CREATE"
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
                       : log.action === "DELETE"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+                        : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
                   }`}
                 >
                   {log.action}

@@ -156,6 +156,11 @@ model Client {
   handlerId String?
   handler   User?   @relation("ClientHandler", fields: [handlerId], references: [id])
 
+  // HubSpot sync metadata (populated when a HubSpot lead is converted)
+  hubspotContactId String?   @unique // HubSpot Contact record ID
+  hubspotDealId    String?           // HubSpot Deal record ID at time of conversion
+  hubspotSyncedAt  DateTime?         // last successful sync timestamp
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

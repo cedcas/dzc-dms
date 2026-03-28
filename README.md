@@ -70,20 +70,37 @@ App runs at http://localhost:3000. Login at `/login`.
 src/
   app/
     (auth)/login/        ← Login page (public)
-    (app)/dashboard/     ← Protected app pages
-    api/auth/            ← Auth.js route handler
+    (app)/               ← Protected app pages (auth enforced by layout)
+      dashboard/
+      clients/
+      accounts/[id]/
+      tasks/
+      creditors/
+      reports/
+    api/
+      auth/[...nextauth]/ ← Auth.js route handler
+      documents/[id]/    ← Document download endpoint
   components/
     auth/                ← LoginForm
     layout/              ← AppShell (sidebar nav)
     ui/                  ← shadcn/ui primitives
+    clients/             ← ClientForm
+    debt-accounts/       ← DebtAccountForm, ActivityForm, OfferForm
+    tasks/               ← TaskForm, InlineTaskForm, CompleteTaskButton
+    creditors/           ← CreditorForm
+    documents/           ← DocumentUploadForm
   lib/
-    actions/             ← Server actions (auth, etc.)
+    actions/             ← Server actions per entity
+    auth/                ← requireAuth / requireRole guards
     db/                  ← Prisma singleton
-    validators/          ← Zod schemas
+    validators/          ← Zod schemas per entity
+    utils.ts             ← cn(), formatDate(), formatCurrency()
+    ui-classes.ts        ← Shared form input class strings
+    audit.ts             ← writeAuditLog()
   auth.ts                ← Auth.js config
-  middleware.ts          ← Route protection
+  types/next-auth.d.ts   ← Session type extensions
 prisma/
-  schema.prisma          ← DB schema
+  schema.prisma          ← DB schema (9 models, 11 enums)
   seed.ts                ← Dev seed data
 ```
 
@@ -118,7 +135,7 @@ npx prisma db seed
 
 - Set `AUTH_URL` to your production domain (`https://yourdomain.com`)
 - `DATABASE_URL` on Hostinger typically uses `localhost` as the host
-- File uploads (later module): configure `UPLOAD_PATH` to a writable directory
+- File uploads: configure `UPLOAD_DIR` to a writable directory (defaults to `<cwd>/uploads`)
 - Prisma client is generated during the build step via `prisma generate`
 
 ---

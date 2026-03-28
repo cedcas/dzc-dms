@@ -1,9 +1,17 @@
 import { prisma } from "@/lib/db/prisma";
 import { requireAuth } from "@/lib/auth/guards";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { CompleteTaskButton } from "@/components/tasks/CompleteTaskButton";
 import type { TaskStatus, TaskPriority, Prisma } from "@prisma/client";
+import {
+  PAGE_TITLE, PAGE_SUBTITLE, PAGE_HEADER,
+  SELECT_CLASS, FILTER_BAR,
+  TABLE_WRAPPER, TABLE_TH, TABLE_TR, TABLE_TD, TABLE_EMPTY_TD,
+  PILL, TASK_STATUS_BADGE, TASK_PRIORITY_BADGE,
+  LINK_SUBTLE,
+} from "@/lib/ui-classes";
 
 export const metadata = { title: "Tasks — DZC DMS" };
 
@@ -16,25 +24,11 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-const STATUS_BADGE: Record<TaskStatus, string> = {
-  TODO: "bg-gray-100 text-gray-600",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  DONE: "bg-green-100 text-green-700",
-  CANCELLED: "bg-red-100 text-red-600",
-};
-
 const PRIORITY_LABEL: Record<TaskPriority, string> = {
   LOW: "Low",
   MEDIUM: "Medium",
   HIGH: "High",
   URGENT: "Urgent",
-};
-
-const PRIORITY_BADGE: Record<TaskPriority, string> = {
-  LOW: "bg-gray-100 text-gray-500",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  URGENT: "bg-red-100 text-red-700",
 };
 
 const DUE_FILTER_LABEL: Record<string, string> = {
@@ -44,14 +38,6 @@ const DUE_FILTER_LABEL: Record<string, string> = {
   week: "Next 7 Days",
 };
 
-function formatDate(d: Date | null | undefined) {
-  if (!d) return "—";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function isOverdue(d: Date | null | undefined): boolean {
   if (!d) return false;
@@ -169,12 +155,10 @@ export default async function TasksPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className={PAGE_HEADER}>
         <div>
-          <h1 className="text-2xl font-semibold">Tasks</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {total} task{total !== 1 ? "s" : ""}
-          </p>
+          <h1 className={PAGE_TITLE}>Tasks</h1>
+          <p className={PAGE_SUBTITLE}>{total} task{total !== 1 ? "s" : ""}</p>
         </div>
         <Link href="/tasks/new" className={buttonVariants()}>
           New Task
@@ -182,45 +166,29 @@ export default async function TasksPage({
       </div>
 
       {/* Filters */}
-      <form method="get" action="/tasks" className="flex flex-wrap gap-3">
-        <select
-          name="status"
-          defaultValue={status ?? ""}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
+      <form method="get" action="/tasks" className={FILTER_BAR}>
+        <select name="status" defaultValue={status ?? ""} className={SELECT_CLASS}>
           <option value="">All Statuses</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
 
-        <select
-          name="priority"
-          defaultValue={priority ?? ""}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
+        <select name="priority" defaultValue={priority ?? ""} className={SELECT_CLASS}>
           <option value="">All Priorities</option>
           {Object.entries(PRIORITY_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
           ))}
         </select>
 
-        <select
-          name="assignee"
-          defaultValue={assignee ?? ""}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
+        <select name="assignee" defaultValue={assignee ?? ""} className={SELECT_CLASS}>
           <option value="">All Assignees</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>{u.name}</option>
           ))}
         </select>
 
-        <select
-          name="due"
-          defaultValue={due}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
+        <select name="due" defaultValue={due} className={SELECT_CLASS}>
           {Object.entries(DUE_FILTER_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
           ))}
@@ -261,26 +229,24 @@ export default async function TasksPage({
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border overflow-hidden">
+      <div className={TABLE_WRAPPER}>
         <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+          <thead className="bg-muted/50 border-b">
             <tr className="text-left">
               <th className="px-4 py-3 w-8" />
-              <th className="px-4 py-3 font-medium text-muted-foreground">Task</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Priority</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Due</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Client / Account</th>
-              <th className="px-4 py-3 font-medium text-muted-foreground">Assignee</th>
+              <th className={TABLE_TH}>Task</th>
+              <th className={TABLE_TH}>Priority</th>
+              <th className={TABLE_TH}>Status</th>
+              <th className={TABLE_TH}>Due</th>
+              <th className={TABLE_TH}>Client / Account</th>
+              <th className={TABLE_TH}>Assignee</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y">
             {tasks.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
-                  No tasks found.
-                </td>
+                <td colSpan={8} className={TABLE_EMPTY_TD}>No tasks found.</td>
               </tr>
             ) : (
               tasks.map((t) => {
@@ -291,67 +257,56 @@ export default async function TasksPage({
                 return (
                   <tr
                     key={t.id}
-                    className={`hover:bg-muted/30 transition-colors ${
-                      t.status === "DONE" ? "opacity-50" : ""
-                    }`}
+                    className={`${TABLE_TR} ${t.status === "DONE" ? "opacity-50" : ""}`}
                   >
-                    <td className="px-4 py-3">
+                    <td className={TABLE_TD}>
                       {t.status !== "DONE" && t.status !== "CANCELLED" && (
                         <CompleteTaskButton taskId={t.id} />
                       )}
                     </td>
-                    <td className="px-4 py-3 max-w-[240px]">
+                    <td className={`${TABLE_TD} max-w-[240px]`}>
                       <Link
                         href={`/tasks/${t.id}/edit`}
-                        className="font-medium hover:underline underline-offset-2 truncate block"
+                        className={`${LINK_SUBTLE} truncate block`}
                       >
                         {t.title}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${PRIORITY_BADGE[t.priority]}`}>
+                    <td className={TABLE_TD}>
+                      <span className={`${PILL} ${TASK_PRIORITY_BADGE[t.priority]}`}>
                         {PRIORITY_LABEL[t.priority]}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[t.status]}`}>
+                    <td className={TABLE_TD}>
+                      <span className={`${PILL} ${TASK_STATUS_BADGE[t.status]}`}>
                         {STATUS_LABEL[t.status]}
                       </span>
                     </td>
-                    <td className={`px-4 py-3 text-sm whitespace-nowrap ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                    <td className={`${TABLE_TD} whitespace-nowrap ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       {formatDate(t.dueDate)}
                       {overdue && <span className="ml-1 text-xs">(overdue)</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                    <td className={`${TABLE_TD} text-muted-foreground`}>
                       {t.client ? (
-                        <Link
-                          href={`/clients/${t.client.id}`}
-                          className="hover:underline"
-                        >
+                        <Link href={`/clients/${t.client.id}`} className="hover:underline">
                           {t.client.firstName} {t.client.lastName}
                         </Link>
                       ) : "—"}
                       {creditorName && (
                         <div className="text-xs mt-0.5">
                           {t.debtAccount && (
-                            <Link
-                              href={`/accounts/${t.debtAccount.id}`}
-                              className="hover:underline"
-                            >
+                            <Link href={`/accounts/${t.debtAccount.id}`} className="hover:underline">
                               {creditorName}
                             </Link>
                           )}
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                    <td className={`${TABLE_TD} text-muted-foreground`}>
                       {t.assignedTo?.name ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/tasks/${t.id}/edit`}
-                        className={buttonVariants({ variant: "ghost", size: "sm" })}
-                      >
+                    <td className={`${TABLE_TD} text-right`}>
+                      <Link href={`/tasks/${t.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                         Edit
                       </Link>
                     </td>

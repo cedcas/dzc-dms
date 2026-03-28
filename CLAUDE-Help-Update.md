@@ -1,6 +1,6 @@
-@AGENTS.md
-
 # CLAUDE.md Addendum — In-App Help Center for DMS
+
+Add the following guidance to the main `CLAUDE.md` for the DMS project.
 
 ## New Module: In-App Help Center
 The DMS must include an internal Help Center that gives users clear how-to guidance, feature explanations, and troubleshooting steps.

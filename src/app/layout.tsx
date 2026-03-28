@@ -13,8 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DZC DMS",
+  title: "Debt Management System — DebtZeroCentral",
   description: "DebtZeroCentral Management System — internal staff only",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

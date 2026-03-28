@@ -12,6 +12,7 @@ import type {
   DebtAccountStatus,
   DelinquencyStage,
 } from "@prisma/client";
+import { FIELD_CLASS } from "@/lib/ui-classes";
 
 type CreditorOption = { id: string; name: string };
 
@@ -51,9 +52,6 @@ const DELINQUENCY_OPTIONS: { value: DelinquencyStage; label: string }[] = [
   { value: "LATE_180_PLUS", label: "180+ Days Late" },
   { value: "CHARGED_OFF", label: "Charged Off" },
 ];
-
-const FIELD_CLASS =
-  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 function toDateInputValue(d: Date | null | undefined) {
   if (!d) return "";

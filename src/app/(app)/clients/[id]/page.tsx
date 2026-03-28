@@ -5,6 +5,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import type { ClientStatus, DebtAccountStatus } from "@prisma/client";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 const STATUS_LABEL: Record<ClientStatus, string> = {
   ONBOARDING: "Onboarding",
@@ -15,11 +16,11 @@ const STATUS_LABEL: Record<ClientStatus, string> = {
 };
 
 const STATUS_BADGE: Record<ClientStatus, string> = {
-  ONBOARDING: "bg-blue-100 text-blue-700",
-  ACTIVE: "bg-green-100 text-green-700",
-  GRADUATED: "bg-purple-100 text-purple-700",
-  WITHDRAWN: "bg-gray-100 text-gray-500",
-  DEFAULTED: "bg-red-100 text-red-700",
+  ONBOARDING: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20",
+  ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  GRADUATED: "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20",
+  WITHDRAWN: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  DEFAULTED: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
 };
 
 const DEBT_STATUS_LABEL: Record<DebtAccountStatus, string> = {
@@ -32,37 +33,20 @@ const DEBT_STATUS_LABEL: Record<DebtAccountStatus, string> = {
 };
 
 const DEBT_STATUS_BADGE: Record<DebtAccountStatus, string> = {
-  ACTIVE: "bg-blue-100 text-blue-700",
-  IN_NEGOTIATION: "bg-yellow-100 text-yellow-700",
-  SETTLED: "bg-green-100 text-green-700",
-  CHARGED_OFF: "bg-gray-100 text-gray-500",
-  DISPUTED: "bg-orange-100 text-orange-700",
-  WITHDRAWN: "bg-red-100 text-red-600",
+  ACTIVE: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20",
+  IN_NEGOTIATION: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  SETTLED: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  CHARGED_OFF: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  DISPUTED: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  WITHDRAWN: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
-  URGENT: "bg-red-100 text-red-700",
-  HIGH: "bg-orange-100 text-orange-700",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  LOW: "bg-gray-100 text-gray-500",
+  URGENT: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
+  HIGH: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-600/20",
+  MEDIUM: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
+  LOW: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
 };
-
-function formatDate(d: Date | null | undefined) {
-  if (!d) return "—";
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(n: { toString(): string }) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(Number(n.toString()));
-}
 
 export default async function ClientDetailPage({
   params,
@@ -118,7 +102,7 @@ export default async function ClientDetailPage({
               {client.firstName} {client.lastName}
             </h1>
             <span
-              className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[client.status]}`}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[client.status]}`}
             >
               {STATUS_LABEL[client.status]}
             </span>
@@ -215,29 +199,15 @@ export default async function ClientDetailPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+              <thead className="bg-muted/50 border-b">
                 <tr className="text-left">
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Creditor
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Acct #
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Original
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Current
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground text-right">
-                    Settled
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 font-medium text-muted-foreground">
-                    Follow-Up
-                  </th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Creditor</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Acct #</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Original</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Current</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Settled</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Follow-Up</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -270,7 +240,7 @@ export default async function ClientDetailPage({
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded ${DEBT_STATUS_BADGE[acct.status]}`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${DEBT_STATUS_BADGE[acct.status]}`}
                       >
                         {DEBT_STATUS_LABEL[acct.status]}
                       </span>
@@ -302,7 +272,7 @@ export default async function ClientDetailPage({
             {client.tasks.map((task) => (
               <li key={task.id} className="px-5 py-3 flex items-center gap-3">
                 <span
-                  className={`shrink-0 text-xs rounded px-1.5 py-0.5 font-medium ${PRIORITY_BADGE[task.priority] ?? "bg-gray-100 text-gray-500"}`}
+                  className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${PRIORITY_BADGE[task.priority] ?? "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20"}`}
                 >
                   {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
                 </span>
@@ -351,12 +321,12 @@ export default async function ClientDetailPage({
             {auditLogs.map((log) => (
               <li key={log.id} className="px-5 py-3 flex items-start gap-3">
                 <span
-                  className={`shrink-0 text-xs rounded px-2 py-0.5 font-medium mt-0.5 ${
+                  className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium mt-0.5 ${
                     log.action === "CREATE"
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
                       : log.action === "DELETE"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+                        : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
                   }`}
                 >
                   {log.action}

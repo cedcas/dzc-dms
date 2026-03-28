@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { uploadDocumentAction, deleteDocumentAction } from "@/lib/actions/documents";
 import type { DocumentCategory } from "@prisma/client";
+import { FIELD_CLASS } from "@/lib/ui-classes";
+import { formatDate } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,9 +22,6 @@ export type DocumentRow = {
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const FIELD_CLASS =
-  "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 const CATEGORY_LABELS: Record<DocumentCategory, string> = {
   INTAKE: "Intake",
@@ -39,13 +38,6 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(d: Date) {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 // ─── Upload Form ─────────────────────────────────────────────────────────────
 
