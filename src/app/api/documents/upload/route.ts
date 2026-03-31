@@ -1,4 +1,4 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/next";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob";
 import { auth } from "@/auth";
 
 const ALLOWED_CONTENT_TYPES = [
