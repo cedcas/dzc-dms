@@ -2,9 +2,10 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { uploadDocumentAction, deleteDocumentAction } from "@/lib/actions/documents";
+import { saveDocumentAction, deleteDocumentAction } from "@/lib/actions/documents";
 import type { DocumentCategory } from "@prisma/client";
 import { FIELD_CLASS } from "@/lib/ui-classes";
 import { formatDate } from "@/lib/utils";
@@ -32,12 +33,23 @@ const CATEGORY_LABELS: Record<DocumentCategory, string> = {
   OTHER: "Misc",
 };
 
+const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
+const ALLOWED_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+]);
+
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
-
 
 // ─── Upload Form ─────────────────────────────────────────────────────────────
 
@@ -60,12 +72,52 @@ export function DocumentUploadForm({
     e.preventDefault();
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    if (clientId) formData.set("clientId", clientId);
-    if (debtAccountId) formData.set("debtAccountId", debtAccountId);
+    const form = e.currentTarget;
+    const fileInput = fileRef.current;
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+      setError("No file selected.");
+      return;
+    }
+
+    if (file.size > MAX_SIZE_BYTES) {
+      setError("File exceeds the 50 MB limit.");
+      return;
+    }
+
+    if (!ALLOWED_TYPES.has(file.type)) {
+      setError("File type not allowed. Upload a PDF, image, Word doc, or plain text file.");
+      return;
+    }
+
+    const category = (form.querySelector('[name="category"]') as HTMLSelectElement)?.value ?? "OTHER";
+    const notes = (form.querySelector('[name="notes"]') as HTMLInputElement)?.value || null;
 
     startTransition(async () => {
-      const result = await uploadDocumentAction(formData);
+      let blobUrl: string;
+      try {
+        const blob = await upload(file.name, file, {
+          access: "public",
+          handleUploadUrl: "/api/documents/upload",
+        });
+        blobUrl = blob.url;
+      } catch {
+        setError("Upload failed. Please try again.");
+        return;
+      }
+
+      const result = await saveDocumentAction({
+        blobUrl,
+        filename: file.name,
+        mimeType: file.type,
+        size: file.size,
+        category,
+        notes,
+        clientId: clientId ?? null,
+        debtAccountId: debtAccountId ?? null,
+      });
+
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -83,7 +135,7 @@ export function DocumentUploadForm({
           Upload Document
         </p>
 
-        <form key={formKey} onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-3">
+        <form key={formKey} onSubmit={handleSubmit} className="space-y-3">
           {error && (
             <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
               {error}
@@ -105,7 +157,7 @@ export function DocumentUploadForm({
                 className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded-md file:border file:border-input file:text-xs file:font-medium file:bg-background file:cursor-pointer cursor-pointer"
               />
               <p className="text-xs text-muted-foreground">
-                PDF, image, Word doc, or plain text · max 10 MB
+                PDF, image, Word doc, or plain text · max 50 MB
               </p>
             </div>
 

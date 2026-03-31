@@ -1,9 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
-import { readFile } from "fs/promises";
-import path from "path";
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
+import { redirect } from "next/navigation";
 
 export async function GET(
   _req: Request,
@@ -21,23 +18,5 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const absolutePath = path.join(UPLOAD_DIR, doc.storagePath);
-
-  let buffer: Buffer;
-  try {
-    buffer = await readFile(absolutePath);
-  } catch {
-    return new Response("File not found on disk", { status: 404 });
-  }
-
-  const encoded = encodeURIComponent(doc.filename);
-  return new Response(buffer as unknown as BodyInit, {
-    headers: {
-      "Content-Type": doc.mimeType,
-      "Content-Disposition": `inline; filename*=UTF-8''${encoded}`,
-      "Content-Length": String(buffer.length),
-      // Prevent browsers from sniffing the MIME type
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  redirect(doc.storagePath);
 }
