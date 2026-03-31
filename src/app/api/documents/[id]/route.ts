@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
-import { redirect } from "next/navigation";
 
 export async function GET(
   _req: Request,
@@ -18,5 +17,22 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  redirect(doc.storagePath);
+  const blobRes = await fetch(doc.storagePath, {
+    headers: {
+      Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+    },
+  });
+
+  if (!blobRes.ok) {
+    return new Response("File not found", { status: 404 });
+  }
+
+  const encoded = encodeURIComponent(doc.filename);
+  return new Response(blobRes.body, {
+    headers: {
+      "Content-Type": doc.mimeType,
+      "Content-Disposition": `inline; filename*=UTF-8''${encoded}`,
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
