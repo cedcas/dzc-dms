@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { saveDocumentAction, deleteDocumentAction } from "@/lib/actions/documents";
@@ -33,7 +32,7 @@ const CATEGORY_LABELS: Record<DocumentCategory, string> = {
   OTHER: "Misc",
 };
 
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB (Vercel function limit)
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -82,7 +81,7 @@ export function DocumentUploadForm({
     }
 
     if (file.size > MAX_SIZE_BYTES) {
-      setError("File exceeds the 50 MB limit.");
+      setError("File exceeds the 4 MB limit.");
       return;
     }
 
@@ -97,11 +96,18 @@ export function DocumentUploadForm({
     startTransition(async () => {
       let blobUrl: string;
       try {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/documents/upload",
+        const fd = new FormData();
+        fd.set("file", file);
+        const res = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: fd,
         });
-        blobUrl = blob.url;
+        const json = await res.json();
+        if (!res.ok || json.error) {
+          setError(json.error ?? "Upload failed. Please try again.");
+          return;
+        }
+        blobUrl = json.url;
       } catch {
         setError("Upload failed. Please try again.");
         return;
@@ -157,7 +163,7 @@ export function DocumentUploadForm({
                 className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded-md file:border file:border-input file:text-xs file:font-medium file:bg-background file:cursor-pointer cursor-pointer"
               />
               <p className="text-xs text-muted-foreground">
-                PDF, image, Word doc, or plain text · max 50 MB
+                PDF, image, Word doc, or plain text · max 4 MB
               </p>
             </div>
 

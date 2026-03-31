@@ -1,7 +1,7 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob";
+import { put } from "@vercel/blob";
 import { auth } from "@/auth";
 
-const ALLOWED_CONTENT_TYPES = [
+const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
   "image/jpeg",
   "image/png",
@@ -9,7 +9,7 @@ const ALLOWED_CONTENT_TYPES = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
-];
+]);
 
 export async function POST(request: Request): Promise<Response> {
   const session = await auth();
@@ -17,26 +17,29 @@ export async function POST(request: Request): Promise<Response> {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const body = (await request.json()) as HandleUploadBody;
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return Response.json({ error: "No file provided" }, { status: 400 });
+  }
+
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return Response.json({ error: "File type not allowed" }, { status: 400 });
+  }
 
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async () => ({
-        allowedContentTypes: ALLOWED_CONTENT_TYPES,
-        maximumSizeInBytes: 50 * 1024 * 1024, // 50 MB
-      }),
-      onUploadCompleted: async () => {
-        // DB record is saved by the client after upload
-      },
+    const blob = await put(file.name, file, {
+      access: "public",
+      contentType: file.type,
     });
-
-    return Response.json(jsonResponse);
-  } catch (error) {
-    return Response.json(
-      { error: (error as Error).message },
-      { status: 400 }
-    );
+    return Response.json({ url: blob.url });
+  } catch {
+    return Response.json({ error: "Upload failed" }, { status: 500 });
   }
 }
