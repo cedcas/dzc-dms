@@ -39,7 +39,8 @@ export async function POST(request: Request): Promise<Response> {
       contentType: file.type,
     });
     return Response.json({ url: blob.url });
-  } catch {
+  } catch (error) {
+    console.error("[upload] put() failed:", error);
     return Response.json({ error: "Upload failed" }, { status: 500 });
   }
 }
