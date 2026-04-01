@@ -11,6 +11,7 @@ import {
   Building2,
   BarChart2,
   BookOpen,
+  ShieldCheck,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -27,6 +28,10 @@ const NAV_ITEMS = [
   { href: "/creditors", label: "Creditors", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart2 },
   { href: "/help", label: "Help", icon: BookOpen },
+];
+
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin/users", label: "Users", icon: ShieldCheck },
 ];
 
 function AppFooter() {
@@ -101,6 +106,38 @@ export function AppShell({
               </Link>
             );
           })}
+
+          {/* Admin-only section */}
+          {role === "ADMIN" && (
+            <>
+              {!collapsed && (
+                <p className="px-3 pt-4 pb-1 text-xs font-semibold text-sidebar-foreground/40 uppercase tracking-widest">
+                  Admin
+                </p>
+              )}
+              {collapsed && <div className="my-2 border-t border-sidebar-border/50" />}
+              {ADMIN_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+                const active = pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    title={collapsed ? label : undefined}
+                    className={cn(
+                      "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      collapsed ? "justify-center" : "gap-2.5",
+                      active
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>{label}</span>}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* Bottom: user + sign out + collapse toggle */}
