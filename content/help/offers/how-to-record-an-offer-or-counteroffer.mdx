@@ -1,0 +1,74 @@
+---
+title: How to record an offer or counteroffer
+slug: how-to-record-an-offer-or-counteroffer
+summary: How to record outgoing offers, incoming offers, and counteroffers on a debt account.
+category: offers
+order: 1
+lastUpdated: "2026-03-31"
+estimatedReadingTime: 4
+relatedArticles: ["how-to-log-a-negotiation-activity", "how-to-add-a-debt-account"]
+---
+
+## What is an offer?
+
+An offer is a formal settlement proposal — either sent by DZC to a creditor (outgoing) or received from a creditor (incoming). Offers track the settlement amount, payment type, and status throughout the negotiation.
+
+## How to record an offer
+
+1. Navigate to the **Debt Account** detail page
+2. Scroll to the **Offers** section
+3. Click **New Offer**
+4. Fill in the offer details:
+   - **Direction** — Outgoing (we sent it) or Incoming (we received it)
+   - **Amount** — the settlement dollar amount
+   - **Percentage of Balance** — e.g., `45.00` for 45% (optional, auto-calculated if you prefer)
+   - **Payment Type** — Lump Sum or Installment
+   - **Installment Count and Frequency** — if installment, specify how many payments and how often
+   - **Source** — creditor rep name or DZC contact name
+   - **Expires At** — deadline for acceptance if applicable
+   - **Notes** — any context about the offer
+5. Click **Save Offer**
+
+## Offer statuses
+
+| Status | Meaning |
+|--------|---------|
+| **Pending** | Offer is open and awaiting response |
+| **Accepted** | Offer has been accepted by both parties |
+| **Rejected** | Offer was declined |
+| **Countered** | The other party responded with a counteroffer |
+| **Expired** | Offer deadline passed without acceptance |
+
+## Updating an offer status
+
+Once an offer is created, you can update its status from the Offers table on the account detail page:
+1. Find the offer in the Offers table
+2. Use the status dropdown or action button to update it
+3. The **Responded At** timestamp is set automatically when you change the status
+
+## Business rule: one accepted offer per account
+
+Only one offer can have the status **Accepted** per debt account at a time. If you try to accept a second offer, the system will warn you and ask if you want to replace the previously accepted offer.
+
+## Recording a counteroffer
+
+When you receive a counter:
+1. Update the original offer status to **Countered**
+2. Create a new offer record for the counteroffer with the new amount
+3. Set direction to **Incoming** if the creditor counter'd, or **Outgoing** if you are countering back
+
+## Tips
+
+- Always record the percentage of balance alongside the dollar amount — this is what gets reported
+- Use Notes to capture any verbal agreements or creditor reference numbers
+- Mark expired offers promptly so the Offers table does not get cluttered with stale records
+
+## Common mistakes
+
+- Recording an accepted offer without updating the account status to Settled — do both together
+- Forgetting to log the corresponding negotiation activity (Offer Sent / Offer Received) — always log both
+
+## Related articles
+
+- [How to log a negotiation activity](/help/negotiation-activities/how-to-log-a-negotiation-activity)
+- [How to add a debt account](/help/debt-accounts/how-to-add-a-debt-account)

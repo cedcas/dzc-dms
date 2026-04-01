@@ -1,0 +1,63 @@
+---
+title: How to add a debt account
+slug: how-to-add-a-debt-account
+summary: Learn how to add a debt account to a client record and set the correct account details.
+category: debt-accounts
+order: 1
+lastUpdated: "2026-03-31"
+estimatedReadingTime: 4
+relatedArticles: ["how-to-create-a-client", "how-to-log-a-negotiation-activity", "how-to-record-an-offer"]
+---
+
+## What is a debt account?
+
+A debt account represents a single debt that a client owes to a creditor. One client can have multiple debt accounts (e.g., a credit card, a medical bill, a personal loan). Each account is tracked independently through the negotiation lifecycle.
+
+## How to add a debt account
+
+1. Navigate to the **Client** detail page (Clients → select a client)
+2. Scroll to the **Debt Accounts** section
+3. Click **Add Account**
+4. Fill in the account fields:
+   - **Original Balance** (required) — the balance when the account was enrolled
+   - **Current Balance** (required) — the current outstanding balance
+   - **Status** — typically `ACTIVE` for a new account
+   - **Account Number** — masked format (e.g., `****1234`)
+   - **Creditor** — search for and select the creditor; create one if it does not exist
+   - **Original Creditor Name** — if the debt has been sold, record the original name here
+   - **Delinquency Stage** — how overdue the account is
+   - **Opened At / Charged Off At** — enter dates if known
+5. Click **Create Account**
+
+## Account statuses
+
+| Status | Meaning |
+|--------|---------|
+| **Active** | Account is enrolled and being tracked |
+| **In Negotiation** | Active settlement discussions are underway |
+| **Settled** | Account has a confirmed settlement agreement |
+| **Charged Off** | Creditor has charged off the debt |
+| **Disputed** | Client is disputing the validity of the debt |
+| **Withdrawn** | Account removed from the program |
+
+## Delinquency stages
+
+Use the delinquency stage to record how far past due the account is:
+`CURRENT`, `LATE_30`, `LATE_60`, `LATE_90`, `LATE_120`, `LATE_180_PLUS`, `CHARGED_OFF`
+
+## Tips
+
+- Update the Current Balance whenever you receive a new statement
+- Use **In Negotiation** status as soon as active settlement discussions begin — this is what filters accounts for negotiators
+- Always link to the correct creditor profile so contact info is available for outreach
+
+## Common mistakes
+
+- Entering the original balance in the current balance field — these should reflect different values as time passes
+- Leaving the creditor field empty — always link to a creditor so contact info is tracked
+- Forgetting to update status when negotiations begin or conclude
+
+## Related articles
+
+- [How to log a negotiation activity](/help/negotiation-activities/how-to-log-a-negotiation-activity)
+- [How to record an offer or counteroffer](/help/offers/how-to-record-an-offer-or-counteroffer)

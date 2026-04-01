@@ -1,0 +1,61 @@
+---
+title: How to create a client
+slug: how-to-create-a-client
+summary: Step-by-step guide to adding a new client record in DMS during intake.
+category: clients
+order: 1
+lastUpdated: "2026-03-31"
+estimatedReadingTime: 4
+relatedArticles: ["how-to-add-a-debt-account", "welcome"]
+---
+
+## When to create a client
+
+Create a client record when a new person enrolls in the DebtZero Central program. Every debt account, task, document, and activity belongs to a client — so the client record must exist first.
+
+## How to create a client
+
+1. Click **Clients** in the left sidebar
+2. Click the **New Client** button in the top-right corner
+3. Fill in the required fields:
+   - **First Name** and **Last Name** (required)
+   - **Email** — must be unique if provided
+   - **Phone**
+   - **Address**
+4. Set the **Status** — typically `ONBOARDING` for a new intake
+5. Set the **Program Start Date** if the client has formally started the program
+6. Add **Hardship Notes** — document the client's financial hardship situation here
+7. Assign a **Handler** — the staff member responsible for this client
+8. Click **Create Client**
+
+You will be redirected to the new client's detail page.
+
+## Client statuses
+
+| Status | When to use |
+|--------|------------|
+| **Onboarding** | Client has enrolled but program has not formally started |
+| **Active** | Client is actively in the program |
+| **Graduated** | Client has completed the program successfully |
+| **Withdrawn** | Client left the program before completion |
+| **Defaulted** | Client failed to meet program obligations |
+
+## After creating a client
+
+The next step is usually to add one or more debt accounts for this client. Go to the client detail page and click **Add Account** under the Debt Accounts section.
+
+## Tips
+
+- Always search for the client before creating a new one — duplicate records cause reporting errors
+- Use the Hardship Notes field generously — these notes inform the negotiation strategy later
+- If a client has a HubSpot record, record the `hubspotContactId` for future sync (when integration is enabled)
+
+## Common mistakes
+
+- Creating a client without a program start date — set this as soon as intake is complete
+- Leaving the Handler field empty — every active client should have an assigned handler
+
+## Related articles
+
+- [How to add a debt account](/help/debt-accounts/how-to-add-a-debt-account)
+- [Welcome to DMS](/help/getting-started/welcome)

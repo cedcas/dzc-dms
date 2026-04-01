@@ -10,6 +10,7 @@ import {
   CheckSquare,
   Building2,
   BarChart2,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/tasks", label: "Tasks", icon: CheckSquare },
   { href: "/creditors", label: "Creditors", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart2 },
+  { href: "/help", label: "Help", icon: BookOpen },
 ];
 
 function AppFooter() {
